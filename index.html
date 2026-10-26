@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>EduPlay - 중학교 정보 & 인공지능 인터랙티브 학습관</title>
+  
+  <!-- Tailwind CSS & Fonts & Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar & Aesthetics */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(241, 245, 249, 0.6); }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+    }
+    .custom-shadow {
+      box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.1), 0 8px 10px -6px rgba(99, 102, 241, 0.05);
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2.5s infinite ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-slate-100 via-indigo-50/40 to-slate-200 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-indigo-100 shadow-sm px-4 py-2.5 sm:px-6">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      
+      <!-- Brand & Home Button -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button onclick="app.showHome()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs sm:text-sm shadow-sm transition-all transform active:scale-95" title="메인 홈으로 이동">
+          <i class="fa-solid fa-house"></i>
+          <span>메인 홈</span>
+        </button>
+        <div class="hidden sm:block h-5 w-px bg-slate-200"></div>
+        <div class="flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+          <h1 class="text-xs sm:text-sm md:text-base font-black text-indigo-950 tracking-tight">
+            EduPlay <span class="text-indigo-600">중학교 정보</span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- User Status & Quick Control Actions -->
+      <div class="flex items-center gap-1.5 sm:gap-2.5">
+        
+        <!-- Student Badge / Login Prompt -->
+        <div id="navStudentBadge" class="flex items-center">
+          <button onclick="app.focusLogin()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs sm:text-sm font-extrabold transition-all shadow-xs">
+            <i class="fa-solid fa-user-pen text-amber-600"></i>
+            <span>학생 로그인</span>
+          </button>
+        </div>
+
+        <!-- 2학년 랭킹 Button -->
+        <button onclick="app.openRankingModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs sm:text-sm font-extrabold transition-all shadow-xs">
+          <i class="fa-solid fa-trophy text-amber-500"></i>
+          <span class="hidden sm:inline">2학년</span> 랭킹
+        </button>
+
+        <!-- 교사 모드 Button -->
+        <button onclick="app.openTeacherModal()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs sm:text-sm font-bold transition-all shadow-xs" title="교사 관리자 모드">
+          <i class="fa-solid fa-chalkboard-user text-indigo-600"></i>
+          <span class="hidden md:inline">교사 모드</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 flex flex-col justify-start">
+    
+    <!-- ========================================== -->
+    <!-- 1. 첫 번째 화면: 학생 출석 및 랭킹 등록 카드 (첨부 이미지 디자인 완벽 반영) -->
+    <!-- ========================================== -->
+    <div id="firstLoginView" class="w-full flex flex-col items-center justify-center py-6 sm:py-12">
+      <div class="w-full max-w-5xl bg-white rounded-3xl p-6 sm:p-8 md:p-10 border-2 border-indigo-100 shadow-lg">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
+          
+          <!-- 좌측 텍스트 안내 영역 -->
+          <div class="space-y-3 text-left w-full lg:w-auto">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-xs sm:text-sm font-black border border-indigo-100">
+              <i class="fa-solid fa-graduation-cap text-indigo-600"></i>
+              <span>2026학년도 2학년 정보 수업</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-snug">
+              반과 번호, 이름을 입력하고 학습을 시작하세요!
+            </h2>
+            <p class="text-xs sm:text-sm md:text-base text-slate-500 font-bold">
+              퀴즈를 맞히면 포인트가 적립되어 <span class="text-indigo-600 font-black">2학년 실시간 명예의 전당</span>에 등록됩니다.
+            </p>
+          </div>
+
+          <!-- 우측 입력 폼 & [출석 및 랭킹 등록] 버튼 (첨부 스크린샷 완벽 일치) -->
+          <form onsubmit="event.preventDefault(); app.submitFirstScreenLogin();" class="flex flex-wrap sm:flex-nowrap items-center justify-center gap-2.5 sm:gap-3 w-full lg:w-auto shrink-0">
+            <!-- 2학년 라벨 -->
+            <div class="flex flex-col items-center justify-center bg-slate-50 border border-slate-200 px-3 py-2 rounded-2xl text-xs sm:text-sm font-black text-slate-700 shadow-xs h-[52px]">
+              <span>2</span>
+              <span>학</span>
+              <span class="-mt-1">년</span>
+            </div>
+
+            <!-- 반 선택 (1~6반) -->
+            <select id="mainClassSelect" class="bg-white border-2 border-indigo-200 hover:border-indigo-400 rounded-2xl px-3 sm:px-4 py-3 text-xs sm:text-sm font-black text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 transition-all h-[52px] shadow-xs cursor-pointer">
+              <option value="1">1반</option>
+              <option value="2">2반</option>
+              <option value="3">3반</option>
+              <option value="4">4반</option>
+              <option value="5">5반</option>
+              <option value="6">6반</option>
+            </select>
+
+            <!-- 번호 입력 (1~40) -->
+            <input type="number" id="mainNumberInput" min="1" max="40" placeholder="번호 (1~40)" class="w-28 sm:w-32 bg-white border-2 border-indigo-200 hover:border-indigo-400 rounded-2xl px-3 py-3 text-xs sm:text-sm font-black text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 transition-all text-center h-[52px] shadow-xs" required>
+
+            <!-- 이름 입력 -->
+            <input type="text" id="mainNameInput" placeholder="이름 (예: 홍길동)" class="w-32 sm:w-36 bg-white border-2 border-indigo-200 hover:border-indigo-400 rounded-2xl px-3 py-3 text-xs sm:text-sm font-black text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 transition-all text-center h-[52px] shadow-xs" required>
+
+            <!-- 출석 및 랭킹 등록 버튼 (보라색 사각 그라데이션) -->
+            <button type="submit" class="px-5 sm:px-6 py-2.5 bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl font-black text-xs sm:text-sm shadow-md hover:shadow-indigo-300 transition-all transform active:scale-95 flex flex-col sm:flex-row items-center justify-center gap-1.5 h-[52px] shrink-0">
+              <i class="fa-solid fa-right-to-bracket text-base"></i>
+              <div class="leading-tight text-center">
+                <span>출석 및</span><br class="hidden sm:inline">
+                <span>랭킹 등록</span>
+              </div>
+            </button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. 두 번째 화면: 학습 단원 선택 (Curriculum Hub) -->
+    <!-- ========================================== -->
+    <div id="unitSelectionView" class="hidden w-full space-y-5">
+      
+      <!-- 상단: 로그인한 학생 프로필 & 출석 완료 배너 -->
+      <section class="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-4 sm:p-5 rounded-3xl border-2 border-indigo-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl font-black shadow-md shrink-0">
+            <i class="fa-solid fa-user-graduate"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="unitStudentLabel" class="text-base sm:text-lg font-black text-indigo-950">2학년 1반 5번 홍길동</span>
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black border border-emerald-300">
+                <i class="fa-solid fa-circle-check mr-1"></i>출석 완료
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm font-bold text-slate-600 mt-0.5">
+              현재 획득 점수: <span id="unitStudentScore" class="text-indigo-600 font-black text-base">0 P</span> · 해결한 문제: <span id="unitStudentSolves" class="text-purple-600 font-black">0개</span>
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="app.openRankingModal()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-extrabold shadow-sm transition-all flex items-center gap-1.5 active:scale-95">
+            <i class="fa-solid fa-trophy"></i>
+            <span>2학년 랭킹 보기</span>
+          </button>
+          <button onclick="app.showFirstLoginView()" class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs sm:text-sm font-bold transition-all active:scale-95">
+            학생 정보 변경
+          </button>
+        </div>
+      </section>
+
+      <!-- 단원 선택 그리드 -->
+      <section class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-6 bg-indigo-600 rounded-full"></span>
+            <h3 class="text-lg sm:text-xl font-black text-slate-900">학습 단원 선택 (Curriculum)</h3>
+          </div>
+          <span class="text-xs sm:text-sm font-bold text-indigo-600">배우고 싶은 단원을 클릭하여 학습을 시작하세요!</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+          <!-- 단원 1 -->
+          <div onclick="app.selectUnit(1)" class="group bg-white rounded-3xl p-5 sm:p-6 border-2 border-indigo-100 hover:border-indigo-400 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between transform hover:-translate-y-1">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-black">단원 I</span>
+                <span class="text-xs font-bold text-slate-500"><i class="fa-regular fa-clock mr-1"></i>컴퓨팅 시스템</span>
+              </div>
+              <h4 class="text-lg sm:text-xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                1. 컴퓨팅 시스템의 구성과 동작
+              </h4>
+              <p class="text-xs sm:text-sm font-bold text-slate-600 leading-relaxed">
+                하드웨어 5대 장치, 중앙 처리 장치(CPU)와 주기억·보조기억 장치, 운영체제의 핵심 역할 및 동작 원리
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-black text-blue-600">
+              <span>개념 학습 + 모의 퀴즈</span>
+              <span class="group-hover:translate-x-1 transition-transform">학습 시작 <i class="fa-solid fa-arrow-right ml-1"></i></span>
+            </div>
+          </div>
+
+          <!-- 단원 2 -->
+          <div onclick="app.selectUnit(2)" class="group bg-white rounded-3xl p-5 sm:p-6 border-2 border-emerald-100 hover:border-emerald-400 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between transform hover:-translate-y-1">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black">단원 II</span>
+                <span class="text-xs font-bold text-slate-500"><i class="fa-regular fa-clock mr-1"></i>피지컬 컴퓨팅</span>
+              </div>
+              <h4 class="text-lg sm:text-xl font-black text-slate-900 group-hover:text-emerald-600 transition-colors">
+                2. 피지컬 컴퓨팅 시스템
+              </h4>
+              <p class="text-xs sm:text-sm font-bold text-slate-600 leading-relaxed">
+                센서 장치(입력), 제어 장치(마이크로컨트롤러·보드), 액추에이터(출력)를 결합한 스마트 시스템 구현
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-black text-emerald-600">
+              <span>센서 제어 + 시스템 구현</span>
+              <span class="group-hover:translate-x-1 transition-transform">학습 시작 <i class="fa-solid fa-arrow-right ml-1"></i></span>
+            </div>
+          </div>
+
+          <!-- 단원 3 -->
+          <div onclick="app.selectUnit(3)" class="group bg-white rounded-3xl p-5 sm:p-6 border-2 border-purple-100 hover:border-purple-400 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between transform hover:-translate-y-1">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-black">단원 IV-1</span>
+                <span class="text-xs font-bold text-slate-500"><i class="fa-regular fa-clock mr-1"></i>인공지능의 이해</span>
+              </div>
+              <h4 class="text-lg sm:text-xl font-black text-slate-900 group-hover:text-purple-600 transition-colors">
+                3. 인공지능의 이해와 데이터
+              </h4>
+              <p class="text-xs sm:text-sm font-bold text-slate-600 leading-relaxed">
+                인공지능 개념, 시스템 3단계, 문제 해결 5단계, 데이터 레이블링(정답 이름표)과 훈련 vs 테스트 데이터
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-black text-purple-600">
+              <span>데이터 수집·레이블링 + 4대 조건</span>
+              <span class="group-hover:translate-x-1 transition-transform">학습 시작 <i class="fa-solid fa-arrow-right ml-1"></i></span>
+            </div>
+          </div>
+
+          <!-- 단원 4 -->
+          <div onclick="app.selectUnit(4)" class="group bg-gradient-to-br from-indigo-50/70 via-white to-amber-50/60 rounded-3xl p-5 sm:p-6 border-2 border-indigo-300 hover:border-indigo-600 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between transform hover:-translate-y-1 relative overflow-hidden">
+            <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[11px] font-black px-3 py-1 rounded-bl-xl shadow-xs">
+              신규 수업 자료
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-xs font-black">단원 IV-2</span>
+                <span class="text-xs font-bold text-indigo-700"><i class="fa-solid fa-star text-amber-500 mr-1"></i>엔트리 실습 & 윤리</span>
+              </div>
+              <h4 class="text-lg sm:text-xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                4. 인공지능의 활용 & 윤리
+              </h4>
+              <p class="text-xs sm:text-sm font-bold text-slate-600 leading-relaxed">
+                엔트리 3대 분류 모델(이미지·소리·텍스트), 스마트 교실 자동 출석부 제작 알고리즘, 인공지능의 윤리와 사회적 가치
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-indigo-100 flex items-center justify-between text-xs sm:text-sm font-black text-indigo-600">
+              <span>모델 개발 + 자동출석부 + AI 윤리</span>
+              <span class="group-hover:translate-x-1 transition-transform">학습 시작 <i class="fa-solid fa-arrow-right ml-1"></i></span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. 세 번째 화면: 슬라이드 학습 플레이어 뷰 -->
+    <!-- ========================================== -->
+    <div id="slidePlayerView" class="hidden w-full flex-1 flex flex-col justify-between space-y-3">
+      
+      <!-- 상단 단원 및 슬라이드 메타바 -->
+      <div class="bg-white rounded-2xl p-3 sm:px-4 sm:py-2.5 border border-indigo-100 shadow-xs flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 overflow-hidden">
+          <button onclick="app.showHome()" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black shrink-0 transition-colors">
+            <i class="fa-solid fa-list mr-1"></i>단원 목록
+          </button>
+          <span id="currentUnitBadge" class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 text-xs font-black shrink-0">
+            단원 4
+          </span>
+          <span id="currentPeriodLabel" class="text-xs sm:text-sm font-black text-slate-700 truncate">
+            1차시 · 인공지능 모델 만들기
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <span id="slideCounterBadge" class="text-xs sm:text-sm font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">
+            1 / 18
+          </span>
+          <button id="ttsButton" onclick="app.speakCurrentContent()" class="p-1.5 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs transition-colors" title="음성 읽기(TTS)">
+            <i class="fa-solid fa-volume-high"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 슬라이드 메인 컨텐츠 영역 (단일 화면 최적화 카드) -->
+      <div id="slideCardContainer" class="bg-white rounded-3xl p-4 sm:p-6 border-2 border-indigo-100 shadow-md min-h-[460px] flex flex-col justify-center transition-all">
+        <!-- 동적 슬라이드 HTML 삽입 -->
+      </div>
+
+      <!-- 하단 슬라이드 네비게이션 컨트롤 바 -->
+      <div class="bg-white/95 rounded-2xl p-3 border border-indigo-100 shadow-xs flex items-center justify-between gap-3">
+        <button id="btnPrevSlide" onclick="app.prevSlide()" class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs sm:text-sm transition-all flex items-center gap-1.5 active:scale-95">
+          <i class="fa-solid fa-chevron-left"></i>
+          <span>이전</span>
+        </button>
+
+        <!-- 중앙 점(Dots) 인디케이터 (스크롤 가능) -->
+        <div id="slideDotsContainer" class="flex items-center gap-1 sm:gap-1.5 max-w-[280px] sm:max-w-md overflow-x-auto py-1 px-2">
+          <!-- 동적 점 생성 -->
+        </div>
+
+        <button id="btnNextSlide" onclick="app.nextSlide()" class="px-5 py-2 sm:px-6 sm:py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs sm:text-sm shadow-md hover:shadow-indigo-200 transition-all flex items-center gap-1.5 active:scale-95">
+          <span>다음</span>
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- 3. 실시간 2학년 명예의 전당 랭킹 모달       -->
+  <!-- ========================================== -->
+  <div id="rankingModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl border-2 border-indigo-200 overflow-hidden flex flex-col max-h-[85vh] animate-pulse-subtle">
+      
+      <!-- 랭킹 모달 헤더 -->
+      <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 text-white p-4 sm:p-5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-amber-300 text-lg">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black tracking-tight">2학년 실시간 명예의 전당</h3>
+            <p class="text-xs text-indigo-100 font-bold">1반 ~ 6반 친구들의 실시간 퀴즈 점수 순위</p>
+          </div>
+        </div>
+        <button onclick="app.closeRankingModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- 내 랭킹 하이라이트 배너 -->
+      <div id="rankingMyHighlight" class="bg-amber-50 border-b border-amber-200 p-3 sm:px-5 flex items-center justify-between text-xs sm:text-sm font-black text-amber-950">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs">나</span>
+          <span id="rankMyInfo">로그인하고 랭킹을 등록해 보세요!</span>
+        </div>
+        <span id="rankMyScore" class="text-indigo-600 font-black text-sm sm:text-base">-</span>
+      </div>
+
+      <!-- 순위 리스트 -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-2.5" id="rankingListContainer">
+        <!-- 동적 랭킹 아이템 렌더링 -->
+      </div>
+
+      <!-- 모달 푸터 -->
+      <div class="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-600">
+        <span><i class="fa-solid fa-arrows-rotate mr-1"></i>실시간 클라우드 자동 동기화</span>
+        <button onclick="app.closeRankingModal()" class="px-4 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-black">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 4. 교사 관리자 모드 대시보드 모달          -->
+  <!-- ========================================== -->
+  <div id="teacherModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border-2 border-indigo-200 overflow-hidden flex flex-col max-h-[88vh]">
+      
+      <!-- 교사 모달 헤더 -->
+      <div class="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-lg">
+            <i class="fa-solid fa-chalkboard-user"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black tracking-tight">선생님 전용 관리 대시보드</h3>
+            <p class="text-xs text-slate-400 font-bold">학생 참여도 관리, 랭킹 및 수업 제어</p>
+          </div>
+        </div>
+        <button onclick="app.closeTeacherModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- 교사 비밀번호 인증 영역 (미인증 시) -->
+      <div id="teacherAuthSection" class="p-6 sm:p-8 flex flex-col items-center justify-center text-center space-y-4">
+        <div class="w-16 h-16 rounded-3xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-2xl">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <div>
+          <h4 class="text-lg font-black text-slate-900">교사 인증 비밀번호를 입력하세요</h4>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1 font-bold">선생님 전용 관리자 암호를 입력해 주세요.</p>
+        </div>
+        <form onsubmit="event.preventDefault(); app.verifyTeacherPassword();" class="flex gap-2">
+          <input type="password" id="teacherPasswordInput" placeholder="비밀번호 입력" class="px-4 py-2 border-2 border-indigo-300 rounded-xl font-bold text-center focus:outline-none focus:border-indigo-600" required>
+          <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black">
+            인증하기
+          </button>
+        </form>
+      </div>
+
+      <!-- 교사 관리 패널 (인증 완료 시) -->
+      <div id="teacherDashboardSection" class="hidden flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+        
+        <!-- 수업 제어 퀵 액션 바 -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <button onclick="app.seedSampleStudents()" class="p-3 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-left transition-all">
+            <i class="fa-solid fa-user-plus text-indigo-600 text-lg mb-1"></i>
+            <div class="text-xs font-black text-indigo-950">샘플 학생 생성</div>
+            <div class="text-[11px] text-slate-600 font-bold">시연용 5명 자동등록</div>
+          </button>
+          <button onclick="app.resetAllScores()" class="p-3 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-left transition-all">
+            <i class="fa-solid fa-trash-can text-rose-600 text-lg mb-1"></i>
+            <div class="text-xs font-black text-rose-950">전체 랭킹 초기화</div>
+            <div class="text-[11px] text-slate-600 font-bold">모든 점수 0점 리셋</div>
+          </button>
+          <button onclick="app.unlockAllSlides()" class="p-3 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-left transition-all">
+            <i class="fa-solid fa-lock-open text-amber-600 text-lg mb-1"></i>
+            <div class="text-xs font-black text-amber-950">슬라이드 자유이동</div>
+            <div class="text-[11px] text-slate-600 font-bold">퀴즈 통과제한 해제</div>
+          </button>
+          <button onclick="app.exportStudentData()" class="p-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-left transition-all">
+            <i class="fa-solid fa-file-arrow-down text-emerald-600 text-lg mb-1"></i>
+            <div class="text-xs font-black text-emerald-950">성적 데이터 복사</div>
+            <div class="text-[11px] text-slate-600 font-bold">클립보드로 복사</div>
+          </button>
+        </div>
+
+        <!-- 2학년 학생 관리 테이블 -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <h5 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-users text-indigo-600"></i>
+              <span>참여 학생 명단 (<span id="teacherStudentCount">0</span>명)</span>
+            </h5>
+            <span class="text-xs font-bold text-slate-600">점수 수동 조정 가능</span>
+          </div>
+
+          <div class="border-2 border-slate-200 rounded-2xl overflow-hidden max-h-60 overflow-y-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 text-slate-700 font-black border-b border-slate-200">
+                <tr>
+                  <th class="p-2.5 text-center">순위</th>
+                  <th class="p-2.5">학급·번호</th>
+                  <th class="p-2.5">이름</th>
+                  <th class="p-2.5 text-center">점수</th>
+                  <th class="p-2.5 text-center">점수 부여/차감</th>
+                </tr>
+              </thead>
+              <tbody id="teacherStudentTableBody" class="divide-y divide-slate-100 bg-white font-bold">
+                <!-- 동적 학생 행 삽입 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 교사 모달 푸터 -->
+      <div class="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end">
+        <button onclick="app.closeTeacherModal()" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-black text-xs">
+          관리 모드 종료
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Firebase SDK Modules (Imported as per rules) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Global variables required for artifacts
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'eduplay-cs-2026';
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+
+    // Comprehensive Curriculum Data with Single-Screen Layout and Enlarged Fonts
+    const curriculumData = {
+      
+      // ==========================================
+      // UNIT 4: IV. 인공지능 - 2. 인공지능의 활용 (완전판)
+      // ==========================================
+      unit4: {
+        id: 'unit4',
+        name: '단원 4',
+        period: '2. 인공지능의 활용 & 윤리',
+        slides: [
+          
+          // 1. 단원 도입
+          {
+            id: 'IV-4-01',
+            type: 'concept',
+            period: '1차시 · 인공지능 모델 만들기',
+            title: '인공지능 모델을 만드는 3단계 과정',
+            badge: '개념 01',
+            content: `
+              <div class="space-y-4">
+                <div class="p-3.5 bg-indigo-50/80 rounded-2xl border border-indigo-200">
+                  <h4 class="text-base sm:text-lg font-black text-indigo-950 flex items-center gap-2">
+                    <i class="fa-solid fa-diagram-project text-indigo-600"></i>
+                    <span>인공지능 모델 생성의 핵심 3단계</span>
+                  </h4>
+                  <p class="text-xs sm:text-sm font-bold text-slate-700 mt-1">
+                    인공지능은 사람이 직접 코드로 규칙을 짜는 대신, 데이터를 통해 스스로 학습하여 모델을 완성합니다.
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="p-4 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-sm mb-2">1</div>
+                      <h5 class="text-base font-black text-slate-900">데이터 입력</h5>
+                      <p class="text-xs sm:text-sm font-bold text-slate-600 mt-1">
+                        데이터를 수집·가공하여 각 <strong>클래스(Class)</strong>에 분류하여 입력
+                      </p>
+                    </div>
+                    <div class="mt-3 text-xs font-black text-indigo-700 bg-indigo-50 p-2 rounded-xl text-center">
+                      🏷️ 클래스별 데이터 분류
+                    </div>
+                  </div>
+
+                  <div class="p-4 bg-white rounded-2xl border-2 border-purple-200 shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black text-sm mb-2">2</div>
+                      <h5 class="text-base font-black text-slate-900">학습 (Learning)</h5>
+                      <p class="text-xs sm:text-sm font-bold text-slate-600 mt-1">
+                        입력된 데이터의 공통된 특징과 규칙을 스스로 찾아 학습하여 <strong>모델 생성</strong>
+                      </p>
+                    </div>
+                    <div class="mt-3 text-xs font-black text-purple-700 bg-purple-50 p-2 rounded-xl text-center">
+                      🧠 특징 추출 및 패턴 학습
+                    </div>
+                  </div>
+
+                  <div class="p-4 bg-white rounded-2xl border-2 border-emerald-200 shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm mb-2">3</div>
+                      <h5 class="text-base font-black text-slate-900">결과 확인 & 평가</h5>
+                      <p class="text-xs sm:text-sm font-bold text-slate-600 mt-1">
+                        새로운 데이터를 활용하여 학습된 모델이 올바르게 분류하는지 <strong>성능 검증</strong>
+                      </p>
+                    </div>
+                    <div class="mt-3 text-xs font-black text-emerald-700 bg-emerald-50 p-2 rounded-xl text-center">
+                      🎯 새 데이터로 성능 평가
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-3 bg-amber-50 rounded-2xl border border-amber-300 flex items-center gap-2.5 text-xs sm:text-sm font-bold text-amber-950">
+                  <i class="fa-solid fa-lightbulb text-amber-600 text-lg"></i>
+                  <span>엔트리(Entry) 블록 코딩에서도 위 3단계(데이터 입력 ➔ 학습하기 ➔ 결과 확인) 순서로 모델을 만듭니다.</span>
+                </div>
+              </div>
+            `
+          },
+
+          // 2. 이미지 분류 모델 (글자 확대 & 균형)
+          {
+            id: 'IV-4-02',
+            type: 'concept',
+            period: '1차시 · 이미지 분류 모델',
+            title: '이미지 분류 모델: 손 모양(가위·바위·보) 인식하기',
+            badge: '개념 02',
+            content: `
+              <div class="space-y-3.5">
+                <div class="p-3 bg-indigo-50/80 rounded-2xl border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h4 class="text-base sm:text-lg font-black text-indigo-950">📷 이미지 분류 모델이란?</h4>
+                    <p class="text-xs sm:text-sm font-bold text-slate-700">이미지의 시각적 특성을 분석하여 어떤 범주나 클래스에 해당하는지 예측하는 모델</p>
+                  </div>
+                  <span class="px-3 py-1 rounded-full bg-indigo-200 text-indigo-900 font-extrabold text-xs shrink-0">
+                    프로젝트: 가위·바위·보
+                  </span>
+                </div>
+
+                <!-- 4단계 카드 (텍스트 크기 확대 반영) -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <div class="p-3 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs">
+                    <span class="text-xs sm:text-sm font-black text-indigo-600">① 문제 정의</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1">
+                      손 모양(가위, 바위, 보) 분류 AI 모델 제작 기획
+                    </p>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs">
+                    <span class="text-xs sm:text-sm font-black text-indigo-600">② 데이터 수집</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1">
+                      촬영 또는 인터넷으로 3가지 손 모양 이미지 확보
+                    </p>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs">
+                    <span class="text-xs sm:text-sm font-black text-indigo-600">③ 모델 생성·평가</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1">
+                      '가위', '바위', '보' 클래스로 학습 및 분류 검증
+                    </p>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs">
+                    <span class="text-xs sm:text-sm font-black text-indigo-600">④ 모델 활용</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1">
+                      엔트리 블록으로 인식한 결과를 말하도록 프로그래밍
+                    </p>
+                  </div>
+                </div>
+
+                <!-- 엔트리 블록 코딩 구조 카드 -->
+                <div class="p-3.5 bg-slate-900 text-white rounded-2xl shadow-sm space-y-2">
+                  <div class="flex items-center justify-between text-xs text-slate-300 font-bold">
+                    <span><i class="fa-solid fa-cubes text-indigo-400 mr-1"></i>엔트리 블록 알고리즘</span>
+                    <span class="text-emerald-400 font-black">실행 결과 말하기</span>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-black">
+                    <span class="bg-emerald-600 px-3 py-1.5 rounded-lg">▶ 시작하기 버튼 클릭했을 때</span>
+                    <i class="fa-solid fa-arrow-right text-slate-500"></i>
+                    <span class="bg-indigo-600 px-3 py-1.5 rounded-lg">학습한 모델로 분류하기</span>
+                    <i class="fa-solid fa-arrow-right text-slate-500"></i>
+                    <span class="bg-purple-600 px-3 py-1.5 rounded-lg">분류 결과 (를) 말하기</span>
+                  </div>
+                </div>
+              </div>
+            `
+          },
+
+          // 3. 소리 분류 모델 (균형 잡힌 타이포그래피 반영)
+          {
+            id: 'IV-4-03',
+            type: 'concept',
+            period: '1차시 · 소리 분류 모델',
+            title: '소리 분류 모델: 노래 제목(민요 아리랑) 인식하기',
+            badge: '개념 03',
+            content: `
+              <div class="space-y-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="p-3.5 bg-purple-50 rounded-2xl border-2 border-purple-200">
+                    <h4 class="text-sm sm:text-base font-black text-purple-950 flex items-center gap-1.5">
+                      <i class="fa-solid fa-volume-high text-purple-600"></i>
+                      <span>소리 분류 모델이란?</span>
+                    </h4>
+                    <p class="text-xs sm:text-sm font-bold text-slate-700 mt-1 leading-relaxed">
+                      소리 데이터의 주파수와 음파 특성을 분석하여 특정 소리가 어떤 범주나 클래스에 해당하는지 예측하는 모델
+                    </p>
+                  </div>
+                  <div class="p-3.5 bg-blue-50 rounded-2xl border-2 border-blue-200">
+                    <h4 class="text-sm sm:text-base font-black text-blue-950 flex items-center gap-1.5">
+                      <i class="fa-solid fa-headphones text-blue-600"></i>
+                      <span>실생활 활용 분야</span>
+                    </h4>
+                    <p class="text-xs sm:text-sm font-bold text-slate-700 mt-1 leading-relaxed">
+                      AI 스피커 음성 인식, 보안 시스템의 파손음 감지, 환자의 숨소리·기침 소리로 질병 상태 진단 등
+                    </p>
+                  </div>
+                </div>
+
+                <!-- 프로젝트 박스 (균형 잡힌 폰트 및 번호 칩 적용) -->
+                <div class="p-4 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs space-y-2.5">
+                  <div class="flex items-center justify-between pb-1.5 border-b border-indigo-100">
+                    <span class="text-sm sm:text-base font-black text-indigo-950 flex items-center gap-1.5">
+                      <i class="fa-solid fa-music text-purple-600"></i> 프로젝트: 민요 아리랑 노래 제목 인식
+                    </span>
+                    <span class="text-xs font-black text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">
+                      클래스: 진도 / 밀양 / 정선 아리랑
+                    </span>
+                  </div>
+
+                  <div class="space-y-1.5 text-xs sm:text-sm font-bold text-slate-800">
+                    <div class="flex items-center gap-2">
+                      <span class="w-5 h-5 rounded-md bg-purple-100 text-purple-800 flex items-center justify-center font-black text-xs shrink-0">1</span>
+                      <span>마이크 연결 확인 후 한국어 음성 및 소리 데이터 인식</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="w-5 h-5 rounded-md bg-purple-100 text-purple-800 flex items-center justify-center font-black text-xs shrink-0">2</span>
+                      <span>학습된 모델로 입력된 소리 분류</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="w-5 h-5 rounded-md bg-purple-100 text-purple-800 flex items-center justify-center font-black text-xs shrink-0">3</span>
+                      <span>만일 결과가 <strong>'진도 아리랑'</strong>이면 ➔ <em>"민요 제목은 '진도 아리랑'입니다."</em> 말하기</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `
+          },
+
+          // 4. 텍스트 분류 모델 (폰트 확대 반영)
+          {
+            id: 'IV-4-04',
+            type: 'concept',
+            period: '1차시 · 텍스트 분류 모델',
+            title: '텍스트 분류 모델: 감정(기쁨 vs 슬픔) 인식하기',
+            badge: '개념 04',
+            content: `
+              <div class="space-y-3.5">
+                <div class="p-3 bg-amber-50/90 rounded-2xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h4 class="text-base sm:text-lg font-black text-amber-950">📝 텍스트 분류 모델이란?</h4>
+                    <p class="text-xs sm:text-sm font-bold text-slate-700">텍스트 단어 및 문장 패턴을 분석하여 특정 감정이나 범주로 분류하는 모델</p>
+                  </div>
+                  <span class="px-3 py-1 rounded-full bg-amber-200 text-amber-900 font-extrabold text-xs shrink-0">
+                    활용: 스팸 메일 차단 · 영화 감상평 분석
+                  </span>
+                </div>
+
+                <!-- 감정인식 챗봇 프로젝트 박스 (글자 크기 확대) -->
+                <div class="p-4 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs space-y-3">
+                  <div class="flex items-center justify-between pb-1.5 border-b border-indigo-100">
+                    <span class="text-sm sm:text-base font-black text-indigo-950 flex items-center gap-1.5">
+                      😊 프로젝트: 감정 인식 챗봇 (기쁨 vs 슬픔)
+                    </span>
+                    <span class="text-xs font-black text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
+                      클래스: '기쁨', '슬픔'
+                    </span>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-300">
+                      <span class="text-xs sm:text-sm font-black text-emerald-800 block mb-1">기쁨 분류 시:</span>
+                      <p class="text-xs sm:text-sm font-bold text-slate-800">
+                        "오늘 즐거웠구나." 말하기 + <span class="text-emerald-700 font-black">반짝반짝 얼굴 스티커</span>
+                      </p>
+                    </div>
+                    <div class="p-3 bg-rose-50 rounded-xl border border-rose-300">
+                      <span class="text-xs sm:text-sm font-black text-rose-800 block mb-1">슬픔 분류 시:</span>
+                      <p class="text-xs sm:text-sm font-bold text-slate-800">
+                        "오늘 많이 힘들었구나." 말하기 + <span class="text-rose-700 font-black">슬픈 얼굴 스티커</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-2.5 bg-slate-100 rounded-xl text-xs sm:text-sm font-bold text-slate-700 flex items-center justify-between">
+                  <span>질문: "오늘 하루 학교생활은 어땠어?" 묻고 대답 기다리기</span>
+                  <span class="text-indigo-600 font-black">대답을 학습한 모델로 분류 ➔ 스티커 변신!</span>
+                </div>
+              </div>
+            `
+          },
+
+          // 5. 1차시 퀴즈 (분류 모델 3형제)
+          {
+            id: 'IV-4-Q1',
+            type: 'quiz',
+            period: '1차시 · 형성평가',
+            title: '인공지능 모델 분류 유형 퀴즈',
+            badge: '퀴즈 01',
+            question: '환자의 기침 소리나 숨소리를 분석하여 호흡기 질환 여부를 예측하고 진단하는 인공지능 모델의 종류로 가장 알맞은 것은?',
+            options: [
+              '이미지 분류 모델',
+              '소리 분류 모델',
+              '텍스트 분류 모델',
+              '숫자 연산 모델'
+            ],
+            answer: 1,
+            explanation: '환자의 기침 소리, 숨소리, 음악, AI 스피커의 음성 인식 등은 모두 주파수와 음파 특성을 분석하는 [소리 분류 모델]에 해당합니다.',
+            points: 10
+          },
+
+          // 6. 스마트 교실 프로젝트: 문제 이해 (9번 슬라이드 글자 확대 반영)
+          {
+            id: 'IV-4-05',
+            type: 'concept',
+            period: '2차시 · 스마트 교실 프로젝트',
+            title: '스마트 교실: 자동 출석부 만들기 - 문제 이해',
+            badge: '개념 05',
+            content: `
+              <div class="space-y-4">
+                <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border-2 border-indigo-200">
+                  <h4 class="text-base sm:text-lg font-black text-indigo-950 flex items-center gap-2">
+                    <i class="fa-solid fa-id-badge text-indigo-600"></i>
+                    <span>프로젝트 목표 정의</span>
+                  </h4>
+                  <p class="text-sm sm:text-base font-bold text-slate-800 mt-1 leading-relaxed">
+                    우리 반 친구들의 얼굴을 웹캠 비디오로 인식하여 <strong>호명 없이 자동으로 출석을 확인하는 인공지능 시스템</strong>을 제작합니다.
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div class="p-4 bg-white rounded-2xl border-2 border-slate-200 shadow-xs">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs font-black px-2.5 py-1 rounded-md bg-slate-200 text-slate-700">현재(초기) 상태</span>
+                      <i class="fa-solid fa-clipboard-user text-slate-400 text-xl"></i>
+                    </div>
+                    <h5 class="text-base sm:text-lg font-black text-slate-900">선생님이 일일이 호명하여 출석 확인</h5>
+                    <p class="text-xs sm:text-sm font-bold text-slate-600 mt-1">
+                      출석을 부르는 데 수업 시간이 소모되고 수동 기록의 번거로움이 존재함
+                    </p>
+                  </div>
+
+                  <div class="p-4 bg-white rounded-2xl border-2 border-emerald-300 shadow-xs">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs font-black px-2.5 py-1 rounded-md bg-emerald-200 text-emerald-900">목표(도달) 상태</span>
+                      <i class="fa-solid fa-camera text-emerald-600 text-xl"></i>
+                    </div>
+                    <h5 class="text-base sm:text-lg font-black text-emerald-900">카메라가 얼굴을 인식하여 자동 출석부 등록</h5>
+                    <p class="text-xs sm:text-sm font-bold text-slate-600 mt-1">
+                      모둠 친구의 얼굴이 인식되면 출석 리스트에 이름이 자동으로 실시간 추가됨
+                    </p>
+                  </div>
+                </div>
+              </div>
+            `
+          },
+
+          // 7. 데이터 점검 5대 기준 (글자 크기 확대 반영)
+          {
+            id: 'IV-4-06',
+            type: 'concept',
+            period: '2차시 · 데이터 수집 및 확인',
+            title: '얼굴 데이터 수집 & 5대 필수 확인 기준',
+            badge: '개념 06',
+            content: `
+              <div class="space-y-3.5">
+                <div class="p-3 bg-indigo-50/80 rounded-2xl border border-indigo-200">
+                  <h4 class="text-base sm:text-lg font-black text-indigo-950">📋 우리 모둠 친구들의 얼굴 데이터 수집하기</h4>
+                  <p class="text-xs sm:text-sm font-bold text-slate-700">모둠별로 학생 수만큼 클래스를 나누고, 각자의 얼굴을 촬영하여 수집합니다.</p>
+                </div>
+
+                <!-- 5대 기준 카드 (폰트 확대 반영) -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  <div class="p-3 bg-white rounded-2xl border-2 border-indigo-200 text-center shadow-xs">
+                    <div class="text-xl mb-1">📊</div>
+                    <span class="text-xs sm:text-sm font-black text-indigo-900 block">1. 충분한 양</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1">데이터 양이 충분한가?</p>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-indigo-200 text-center shadow-xs">
+                    <div class="text-xl mb-1">🔍</div>
+                    <span class="text-xs sm:text-sm font-black text-indigo-900 block">2. 선명도</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1">화질이 또렷하고 선명한가?</p>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-indigo-200 text-center shadow-xs">
+                    <div class="text-xl mb-1">🔄</div>
+                    <span class="text-xs sm:text-sm font-black text-indigo-900 block">3. 다양한 각도</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1">앞·옆모습 등 다양한가?</p>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-indigo-200 text-center shadow-xs">
+                    <div class="text-xl mb-1">🖼️</div>
+                    <span class="text-xs sm:text-sm font-black text-indigo-900 block">4. 깔끔한 배경</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1">배경이 복잡하지 않은가?</p>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-indigo-200 text-center shadow-xs col-span-2 sm:col-span-1">
+                    <div class="text-xl mb-1">⚖️</div>
+                    <span class="text-xs sm:text-sm font-black text-indigo-900 block">5. 편견 배제</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1">편견을 담고 있지는 않은가?</p>
+                  </div>
+                </div>
+
+                <div class="p-3.5 bg-amber-50 rounded-2xl border-2 border-amber-300 flex items-center justify-between gap-2 text-xs sm:text-sm">
+                  <div class="font-extrabold text-amber-950">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i>
+                    <span>분류가 잘 안 되거나 오답이 발생하면?</span>
+                  </div>
+                  <span class="font-black text-rose-700 bg-white px-3 py-1 rounded-xl border border-rose-200 shadow-xs">
+                    💡 더 많은 이미지 자료를 추가하여 재학습!
+                  </span>
+                </div>
+              </div>
+            `
+          },
+
+          // 8. 2차시 퀴즈 (분류 오류 해결책)
+          {
+            id: 'IV-4-Q2',
+            type: 'quiz',
+            period: '2차시 · 형성평가',
+            title: '모델 성능 개선 방법 퀴즈',
+            badge: '퀴즈 02',
+            question: '얼굴 인식 자동 출석부 모델을 테스트했는데, 특정 친구의 얼굴을 잘 분류하지 못하는 오류가 발생했습니다. 학습지에 제시된 가장 올바른 해결 방법은?',
+            options: [
+              '분류가 안 되는 친구는 모델에서 제외한다.',
+              '더 많은 다양한 이미지 자료를 추가하여 재학습한다.',
+              '컴퓨터의 전원을 껐다 켠 후 그대로 실행한다.',
+              '얼굴 대신 번호표를 목에 걸고 촬영한다.'
+            ],
+            answer: 1,
+            explanation: '학습지 내용에 명시되어 있듯이, 완성된 모델의 분류가 잘되지 않을 때는 [더 많은 이미지 자료를 추가하여 학습]하여 모델의 정확도를 높여야 합니다.',
+            points: 10
+          },
+
+          // 9. 자동 출석부 알고리즘 4단계 & 최종 평가 (12번 슬라이드 글자 확대 + 옆으로 밀착 배치 반영)
+          {
+            id: 'IV-4-07',
+            type: 'concept',
+            period: '2차시 · 알고리즘 설계',
+            title: '자동 출석부 알고리즘 설계 4단계 및 최종 평가',
+            badge: '개념 07',
+            content: `
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <div class="p-3.5 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs">
+                    <span class="text-sm sm:text-base font-black text-indigo-700">① 비디오 얼굴 인식</span>
+                    <p class="text-xs sm:text-[13px] md:text-sm font-bold text-slate-700 mt-1.5 leading-relaxed">
+                      웹캠 비디오 화면으로 얼굴 인식을 시작한다.
+                    </p>
+                  </div>
+                  <div class="p-3.5 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs">
+                    <span class="text-sm sm:text-base font-black text-indigo-700">② 친구 얼굴 분류</span>
+                    <p class="text-xs sm:text-[13px] md:text-sm font-bold text-slate-700 mt-1.5 leading-relaxed">
+                      얼굴이 인식되면 학습된 AI 모델로 누구인지 분류한다.
+                    </p>
+                  </div>
+                  <div class="p-3.5 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs">
+                    <span class="text-sm sm:text-base font-black text-indigo-700">③ 출석부 리스트 추가</span>
+                    <p class="text-xs sm:text-[13px] md:text-sm font-bold text-slate-700 mt-1.5 leading-relaxed">
+                      우리 모둠 친구이면 출석부 리스트에 이름을 추가한다.
+                    </p>
+                  </div>
+                  <div class="p-3.5 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs">
+                    <span class="text-sm sm:text-base font-black text-indigo-700">④ 프로그램 종료</span>
+                    <p class="text-xs sm:text-[13px] md:text-sm font-bold text-slate-700 mt-1.5 leading-relaxed">
+                      리스트 인원수와 모둠 학생 수가 일치하면 종료한다.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- 최종 평가 3대 기준 (옆으로 밀착 배치 및 큰 글씨 반영) -->
+                <div class="p-3.5 bg-emerald-50 rounded-2xl border-2 border-emerald-300 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                  <span class="text-sm sm:text-base font-black text-emerald-950 flex items-center gap-1.5 shrink-0">
+                    <i class="fa-solid fa-clipboard-check text-emerald-600"></i>
+                    <span>📋 최종 평가 3대 기준:</span>
+                  </span>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-emerald-900 font-extrabold shadow-xs text-xs sm:text-sm">
+                      ① 잘 작동하는가?
+                    </span>
+                    <span class="px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-emerald-900 font-extrabold shadow-xs text-xs sm:text-sm">
+                      ② 데이터가 충분한가?
+                    </span>
+                    <span class="px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-emerald-900 font-extrabold shadow-xs text-xs sm:text-sm">
+                      ③ 개선 사항을 확인했는가?
+                    </span>
+                  </div>
+                </div>
+              </div>
+            `
+          },
+
+          // 10. 2차시 퀴즈 (알고리즘 종료 조건)
+          {
+            id: 'IV-4-Q3',
+            type: 'quiz',
+            period: '2차시 · 형성평가',
+            title: '자동 출석부 알고리즘 종료 조건 퀴즈',
+            badge: '퀴즈 03',
+            question: '자동 출석부 프로그램이 실행을 마치고 정상 종료되는 조건으로 올바른 것은?',
+            options: [
+              '카메라 전원이 꺼졌을 때',
+              '출석부 리스트 항목 수가 우리 모둠 학생 수와 일치할 때',
+              '선생님이 이름을 호명했을 때',
+              '10분의 제한 시간이 모두 지났을 때'
+            ],
+            answer: 1,
+            explanation: '학습지 알고리즘 설계 4단계에 따라, [리스트 항목 수가 우리 모둠 수와 일치하면 프로그램 종료]하도록 설계되어 있습니다.',
+            points: 10
+          },
+
+          // 11. 인공지능의 사회적 역할과 3대 가치 (14번 슬라이드 글자 확대 반영)
+          {
+            id: 'IV-4-08',
+            type: 'concept',
+            period: '3차시 · 인공지능의 가치와 윤리',
+            title: '인공지능의 사회적 역할과 3대 핵심 가치',
+            badge: '개념 08',
+            content: `
+              <div class="space-y-4">
+                <div class="p-3.5 bg-indigo-50/80 rounded-2xl border border-indigo-200">
+                  <h4 class="text-base sm:text-lg font-black text-indigo-950">🌍 인공지능이 우리 사회를 변화시키는 3가지 힘</h4>
+                  <p class="text-xs sm:text-sm font-bold text-slate-700">단순한 자동화를 넘어 복잡한 사회 문제를 해결하고 새로운 삶의 편의를 만듭니다.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <div class="p-4 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div class="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg mb-2">🚨</div>
+                      <h5 class="text-base sm:text-lg font-black text-indigo-950">① 사회 문제 해결</h5>
+                      <p class="text-xs sm:text-sm font-bold text-slate-700 mt-2 leading-relaxed">
+                        자연재해 예측 및 대처, 의료 진단과 맞춤 치료, 범죄 예방 등 복잡한 사회 문제 해결
+                      </p>
+                    </div>
+                    <span class="mt-3 text-xs font-black text-indigo-600 bg-indigo-50 p-2 rounded-xl text-center">
+                      💡 재난 대응 · 정밀 의료
+                    </span>
+                  </div>
+
+                  <div class="p-4 bg-white rounded-2xl border-2 border-purple-200 shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg mb-2">🎯</div>
+                      <h5 class="text-base sm:text-lg font-black text-purple-950">② 개인화된 경험 제공</h5>
+                      <p class="text-xs sm:text-sm font-bold text-slate-700 mt-2 leading-relaxed">
+                        개인의 검색 기록, 취향, 관심사 등을 고려하여 맞춤형 콘텐츠와 서비스를 제공
+                      </p>
+                    </div>
+                    <span class="mt-3 text-xs font-black text-purple-600 bg-purple-50 p-2 rounded-xl text-center">
+                      💡 알고리즘 맞춤 추천
+                    </span>
+                  </div>
+
+                  <div class="p-4 bg-white rounded-2xl border-2 border-emerald-200 shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg mb-2">📈</div>
+                      <h5 class="text-base sm:text-lg font-black text-emerald-950">③ 지식과 정보의 확장</h5>
+                      <p class="text-xs sm:text-sm font-bold text-slate-700 mt-2 leading-relaxed">
+                        대규모 데이터를 처리하며 새로운 지식과 통찰을 발견하여 혁신과 경제적 가치 창출
+                      </p>
+                    </div>
+                    <span class="mt-3 text-xs font-black text-emerald-600 bg-emerald-50 p-2 rounded-xl text-center">
+                      💡 빅데이터 혁신 발굴
+                    </span>
+                  </div>
+                </div>
+              </div>
+            `
+          },
+
+          // 12. AI 5대 윤리적 문제 (15번 슬라이드 3열+2열 배치 및 폰트 확대 반영)
+          {
+            id: 'IV-4-09',
+            type: 'concept',
+            period: '3차시 · 인공지능의 가치와 윤리',
+            title: '인공지능 개발 시 고려해야 할 5대 윤리적 원칙',
+            badge: '개념 09',
+            content: `
+              <div class="space-y-3">
+                <!-- 상단 3열 -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div class="p-3 bg-white rounded-2xl border-2 border-rose-200 shadow-xs">
+                    <span class="text-sm font-black text-rose-800 flex items-center gap-1">
+                      <i class="fa-solid fa-scale-unbalanced text-rose-600"></i> ① 데이터 편향성
+                    </span>
+                    <p class="text-xs sm:text-sm font-bold text-slate-700 mt-1 leading-relaxed">
+                      인종, 성별, 종교 등 특정 집단에 대한 편견이 섞이면 <strong>불공정한 결과를 출력</strong>함
+                    </p>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-blue-200 shadow-xs">
+                    <span class="text-sm font-black text-blue-800 flex items-center gap-1">
+                      <i class="fa-solid fa-eye text-blue-600"></i> ② 투명성
+                    </span>
+                    <p class="text-xs sm:text-sm font-bold text-slate-700 mt-1 leading-relaxed">
+                      어떤 규칙과 기준으로 판단하는지 <strong>과정을 명확히 설명</strong>할 수 있어야 신뢰받음
+                    </p>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-amber-200 shadow-xs">
+                    <span class="text-sm font-black text-amber-800 flex items-center gap-1">
+                      <i class="fa-solid fa-person-circle-check text-amber-600"></i> ③ 인간 중심성
+                    </span>
+                    <p class="text-xs sm:text-sm font-bold text-slate-700 mt-1 leading-relaxed">
+                      최종 결정 권한은 인간이 가지며, 모든 사람에게 공평하게 활용되도록 협력해야 함
+                    </p>
+                  </div>
+                </div>
+
+                <!-- 하단 2열 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div class="p-3 bg-white rounded-2xl border-2 border-purple-200 shadow-xs">
+                    <span class="text-sm font-black text-purple-800 flex items-center gap-1">
+                      <i class="fa-solid fa-shield-halved text-purple-600"></i> ④ 책임감
+                    </span>
+                    <p class="text-xs sm:text-sm font-bold text-slate-700 mt-1 leading-relaxed">
+                      사용 중 발생하는 부작용, 위험성, 오류에 대해 개발자, 도입자, 사용자의 명확한 책임 부여 필요
+                    </p>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-emerald-200 shadow-xs">
+                    <span class="text-sm font-black text-emerald-800 flex items-center gap-1">
+                      <i class="fa-solid fa-user-lock text-emerald-600"></i> ⑤ 개인 정보와 저작권
+                    </span>
+                    <p class="text-xs sm:text-sm font-bold text-slate-700 mt-1 leading-relaxed">
+                      개인정보 수집 시 <strong>동의서 취득 및 비식별화 처리</strong> 필수, 저작물은 허락 후 사용
+                    </p>
+                  </div>
+                </div>
+              </div>
+            `
+          },
+
+          // 13. 3차시 퀴즈 (윤리 문제)
+          {
+            id: 'IV-4-Q4',
+            type: 'quiz',
+            period: '3차시 · 형성평가',
+            title: '인공지능 윤리 고려사항 퀴즈',
+            badge: '퀴즈 04',
+            question: '인공지능 학습을 위해 사람들의 사진과 개인 정보를 수집할 때 반드시 거쳐야 하는 올바른 절차로 가장 적절한 것은?',
+            options: [
+              '출처를 밝히지 않고 인터넷에서 몰래 다운로드한다.',
+              '수집·이용 동의서를 받고 식별할 수 없도록 비식별화 처리를 한다.',
+              '고화질 원본 사진과 실명을 그대로 모델에 학습시킨다.',
+              '외국 웹사이트의 데이터만 골라서 무단으로 활용한다.'
+            ],
+            answer: 1,
+            explanation: '학습지 내용에 따라 개인 정보가 포함된 데이터를 다룰 때는 [개인 정보 수집·이용 동의서]를 받은 후 [비식별화 처리]를 거쳐야 법과 윤리를 준수할 수 있습니다.',
+            points: 10
+          },
+
+          // 14. 바람직한 발전을 위한 4대 노력 (글자 확대 반영)
+          {
+            id: 'IV-4-10',
+            type: 'concept',
+            period: '3차시 · 발전 방향',
+            title: '바람직한 인공지능 개발을 위한 4대 사회적 노력',
+            badge: '개념 10',
+            content: `
+              <div class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div class="p-4 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs">
+                    <span class="text-sm sm:text-base font-black text-indigo-900 block">① 법률과 제도 정비</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1.5 leading-relaxed">
+                      사회적, 윤리적, 법률적 문제에 대응하기 위한 사회 시스템 개선 및 체계적 규제 마련
+                    </p>
+                  </div>
+                  <div class="p-4 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs">
+                    <span class="text-sm sm:text-base font-black text-indigo-900 block">② 투명한 인공지능 개발</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1.5 leading-relaxed">
+                      국민의 생명과 안전에 직결된 분야에서 최종 결정 과정에 대한 설명 투명성 확보
+                    </p>
+                  </div>
+                  <div class="p-4 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs">
+                    <span class="text-sm sm:text-base font-black text-indigo-900 block">③ 개발자·기업의 윤리 지침 확보</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1.5 leading-relaxed">
+                      인간 중심적 설계, 공정한 결정 제공, 철저한 개인 정보 보호 기준 수립
+                    </p>
+                  </div>
+                  <div class="p-4 bg-white rounded-2xl border-2 border-indigo-200 shadow-xs">
+                    <span class="text-sm sm:text-base font-black text-indigo-900 block">④ 인공지능의 공정한 활용</span>
+                    <p class="text-xs sm:text-[13px] font-bold text-slate-700 mt-1.5 leading-relaxed">
+                      모든 사람이 디지털 격차 없이 공평하게 접근할 수 있도록 다양한 분야 의견 수렴
+                    </p>
+                  </div>
+                </div>
+
+                <div class="p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl text-white text-center text-xs sm:text-sm font-black shadow-md">
+                  ✨ "기술의 발전은 인간의 존엄성과 공정성을 지키는 윤리적 바탕 위에서만 진정한 가치를 가집니다."
+                </div>
+              </div>
+            `
+          },
+
+          // 15. 최종 종합 성취도 퀴즈
+          {
+            id: 'IV-4-Q5',
+            type: 'quiz',
+            period: '3차시 · 종합 평가',
+            title: '인공지능 윤리 4대 노력 종합 퀴즈',
+            badge: '최종 평가',
+            question: '다음 중 바람직한 인공지능 개발을 위한 사회적 노력으로 가장 적절하지 않은 것은?',
+            options: [
+              '국민의 생명과 안전에 직결된 분야의 AI 판단 과정을 투명하게 공개한다.',
+              '모든 사람이 공평하게 접근할 수 있도록 각계각층의 의견을 수렴한다.',
+              '개발 속도를 높이기 위해 윤리 지침이나 법률 규제를 전면 폐지한다.',
+              '인간 중심의 설계와 개인 정보 보호 기준을 확립한다.'
+            ],
+            answer: 2,
+            explanation: '인공지능의 부작용을 막기 위해서는 법률과 제도를 지속적으로 정비하고 윤리 지침을 확립해야 하며, 이를 폐지하는 것은 매우 위험합니다.',
+            points: 15
+          },
+
+          // 16. 단원 학습 완료 축하 슬라이드
+          {
+            id: 'IV-4-FIN',
+            type: 'complete',
+            period: '단원 완료',
+            title: '축하합니다! 단원 4 학습을 모두 완료했습니다!',
+            badge: '수료증',
+            content: `
+              <div class="text-center py-6 space-y-4">
+                <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-amber-400 to-yellow-300 text-white flex items-center justify-center text-4xl shadow-lg animate-bounce">
+                  🏆
+                </div>
+                <div>
+                  <h4 class="text-xl sm:text-2xl font-black text-slate-900">단원 4: 인공지능의 활용 완벽 마스터!</h4>
+                  <p class="text-xs sm:text-sm font-bold text-slate-600 mt-1">
+                    3대 분류 모델, 자동 출석부 알고리즘, 인공지능 윤리까지 모두 훌륭하게 배웠습니다.
+                  </p>
+                </div>
+                <div class="flex justify-center gap-3 pt-2">
+                  <button onclick="app.openRankingModal()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs sm:text-sm shadow-md transition-transform transform active:scale-95">
+                    <i class="fa-solid fa-trophy mr-1.5"></i>내 랭킹 확인하기
+                  </button>
+                  <button onclick="app.showHome()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs sm:text-sm shadow-md transition-transform transform active:scale-95">
+                    <i class="fa-solid fa-house mr-1.5"></i>메인 홈으로 가기
+                  </button>
+                </div>
+              </div>
+            `
+          }
+        ]
+      },
+
+      // ==========================================
+      // UNIT 1: I. 컴퓨팅 시스템의 구성과 동작 (요약 연동)
+      // ==========================================
+      unit1: {
+        id: 'unit1',
+        name: '단원 1',
+        period: '1. 컴퓨팅 시스템의 구성과 동작',
+        slides: [
+          {
+            id: 'I-01',
+            type: 'concept',
+            period: '1차시 · 하드웨어 5대 장치',
+            title: '컴퓨팅 시스템 하드웨어의 구성과 5대 장치',
+            badge: '개념 01',
+            content: `
+              <div class="space-y-4">
+                <div class="p-3 bg-blue-50 rounded-2xl border border-blue-200">
+                  <h4 class="text-base sm:text-lg font-black text-blue-950">컴퓨터의 5대 핵심 장치 분류</h4>
+                  <p class="text-xs sm:text-sm font-bold text-slate-700 mt-1">입력, 제어, 연산(CPU), 기억(주/보조), 출력 장치가 유기적으로 상호작용합니다.</p>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center">
+                  <div class="p-3 bg-white rounded-2xl border-2 border-blue-200">
+                    <div class="text-2xl mb-1">⌨️</div>
+                    <span class="text-xs sm:text-sm font-black text-blue-900 block">입력 장치</span>
+                    <span class="text-[11px] text-slate-500 font-bold">키보드, 마우스</span>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-indigo-200">
+                    <div class="text-2xl mb-1">⚙️</div>
+                    <span class="text-xs sm:text-sm font-black text-indigo-900 block">제어 장치</span>
+                    <span class="text-[11px] text-slate-500 font-bold">명령어 해석·지시</span>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-purple-200">
+                    <div class="text-2xl mb-1">🧮</div>
+                    <span class="text-xs sm:text-sm font-black text-purple-900 block">연산 장치</span>
+                    <span class="text-[11px] text-slate-500 font-bold">산술·논리 연산</span>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-emerald-200">
+                    <div class="text-2xl mb-1">💾</div>
+                    <span class="text-xs sm:text-sm font-black text-emerald-900 block">기억 장치</span>
+                    <span class="text-[11px] text-slate-500 font-bold">RAM, SSD/HDD</span>
+                  </div>
+                  <div class="p-3 bg-white rounded-2xl border-2 border-rose-200 col-span-2 sm:col-span-1">
+                    <div class="text-2xl mb-1">🖥️</div>
+                    <span class="text-xs sm:text-sm font-black text-rose-900 block">출력 장치</span>
+                    <span class="text-[11px] text-slate-500 font-bold">모니터, 프린터</span>
+                  </div>
+                </div>
+              </div>
+            `
+          },
+          {
+            id: 'I-Q1',
+            type: 'quiz',
+            period: '1차시 · 점검 퀴즈',
+            title: '하드웨어 5대 장치 퀴즈',
+            badge: '퀴즈 01',
+            question: '그래픽 디자이너가 3D 그래픽을 병렬 처리하고 작업 결과 파일을 영구 보관하기 위해 필요한 하드웨어 장치 조합은?',
+            options: ['GPU와 보조기억 장치', '키보드와 스피커', '마우스와 웹캠', 'ROM과 마이크'],
+            answer: 0,
+            explanation: '고화질 3D 병렬 처리는 GPU가 담당하며, 파일의 영구 보관은 SSD나 HDD 같은 보조기억 장치에 저장합니다.',
+            points: 10
+          }
+        ]
+      },
+
+      // ==========================================
+      // UNIT 2: II. 피지컬 컴퓨팅 시스템
+      // ==========================================
+      unit2: {
+        id: 'unit2',
+        name: '단원 2',
+        period: '2. 피지컬 컴퓨팅 시스템',
+        slides: [
+          {
+            id: 'II-01',
+            type: 'concept',
+            period: '1차시 · 피지컬 컴퓨팅 기초',
+            title: '피지컬 컴퓨팅의 3대 핵심 구성 요소',
+            badge: '개념 01',
+            content: `
+              <div class="space-y-4">
+                <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
+                  <h4 class="text-base sm:text-lg font-black text-emerald-950">현실 세계와 디지털 세계의 융합</h4>
+                  <p class="text-xs sm:text-sm font-bold text-slate-700 mt-1">센서로 환경을 감지하고, 마이크로보드가 판단하여, 액추에이터로 물리적 동작을 수행합니다.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                  <div class="p-4 bg-white rounded-2xl border-2 border-blue-200">
+                    <span class="text-sm font-black text-blue-800">1. 센서 (입력)</span>
+                    <p class="text-xs font-bold text-slate-600 mt-1">온도, 습도, 초음파, 조도 센서</p>
+                  </div>
+                  <div class="p-4 bg-white rounded-2xl border-2 border-emerald-200">
+                    <span class="text-sm font-black text-emerald-800">2. 제어보드 (처리)</span>
+                    <p class="text-xs font-bold text-slate-600 mt-1">아두이노, 마이크로비트</p>
+                  </div>
+                  <div class="p-4 bg-white rounded-2xl border-2 border-amber-200">
+                    <span class="text-sm font-black text-amber-800">3. 액추에이터 (출력)</span>
+                    <p class="text-xs font-bold text-slate-600 mt-1">LED, 서보모터, 부저 스피커</p>
+                  </div>
+                </div>
+              </div>
+            `
+          }
+        ]
+      },
+
+      // ==========================================
+      // UNIT 3: IV-1. 인공지능의 이해
+      // ==========================================
+      unit3: {
+        id: 'unit3',
+        name: '단원 3',
+        period: '1. 인공지능의 이해와 데이터',
+        slides: [
+          {
+            id: 'III-01',
+            type: 'concept',
+            period: '1차시 · 레이블링과 데이터 분리',
+            title: '데이터 레이블링(정답 달기)과 분리 원칙',
+            badge: '개념 01',
+            content: `
+              <div class="space-y-4">
+                <div class="p-3 bg-purple-50 rounded-2xl border border-purple-200">
+                  <h4 class="text-base sm:text-lg font-black text-purple-950">🏷️ 레이블링(Labeling)이란?</h4>
+                  <p class="text-xs sm:text-sm font-bold text-slate-700 mt-1">인공지능이 스스로 공부할 수 있도록 데이터에 '정답(이름표)'을 달아주는 작업입니다.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="p-3.5 bg-white rounded-2xl border-2 border-indigo-200">
+                    <span class="text-sm font-black text-indigo-700">훈련 데이터 (Training)</span>
+                    <p class="text-xs font-bold text-slate-600 mt-1">인공지능 모델 학습용 ➔ 시험 전 풀어보는 '학습지' 비유</p>
+                  </div>
+                  <div class="p-3.5 bg-white rounded-2xl border-2 border-emerald-200">
+                    <span class="text-sm font-black text-emerald-700">테스트 데이터 (Test)</span>
+                    <p class="text-xs font-bold text-slate-600 mt-1">모델 성능 검증용 ➔ 실력을 평가하는 '진짜 시험' 비유</p>
+                  </div>
+                </div>
+              </div>
+            `
+          }
+        ]
+      }
+    };
+
+    class EduApp {
+      constructor() {
+        this.currentUnitKey = 'unit4';
+        this.currentSlideIndex = 0;
+        this.userAnswers = {};
+        this.student = null; // { grade: 2, classNum: 1, studentNum: 5, name: '홍길동', score: 0, solvedCount: 0 }
+        this.rankingList = [];
+        this.unlockedAll = false;
+        this.teacherAuthenticated = false;
+
+        // Load local cache if available
+        this.loadLocalStudent();
+      }
+
+      loadLocalStudent() {
+        try {
+          const cached = sessionStorage.getItem('eduplay_student');
+          if (cached) {
+            this.student = JSON.parse(cached);
+          }
+        } catch (e) {
+          console.warn('Session storage read skipped', e);
+        }
+      }
+
+      saveLocalStudent() {
+        try {
+          if (this.student) {
+            sessionStorage.setItem('eduplay_student', JSON.stringify(this.student));
+          } else {
+            sessionStorage.removeItem('eduplay_student');
+          }
+        } catch (e) {
+          console.warn('Session storage save skipped', e);
+        }
+      }
+
+      init() {
+        this.renderStudentStatusUI();
+        // 로그인 정보가 없으면 첨부 이미지와 동일한 1번째 화면(로그인 카드)을 보여줌
+        if (!this.student) {
+          this.showFirstLoginView();
+        } else {
+          this.showUnitSelection();
+        }
+        this.initRankingData();
+      }
+
+      initRankingData() {
+        // Firestore 실시간 리스너 또는 로컬 랭킹 초기화
+        if (db) {
+          try {
+            const rankingsCol = collection(db, 'artifacts', appId, 'public', 'data', 'grade2_rankings');
+            onSnapshot(rankingsCol, (snapshot) => {
+              const cloudList = [];
+              snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                if (data && data.name) {
+                  cloudList.push(data);
+                }
+              });
+              if (cloudList.length > 0) {
+                this.rankingList = cloudList;
+                this.rankingList.sort((a, b) => (b.score || 0) - (a.score || 0));
+                this.renderRankingListUI();
+                if (this.teacherAuthenticated) {
+                  this.renderTeacherDashboard();
+                }
+              }
+            }, (err) => {
+              console.warn("Ranking onSnapshot failed:", err);
+            });
+          } catch (e) {
+            console.warn("Failed to attach ranking listener:", e);
+          }
+        }
+        this.renderRankingListUI();
+      }
+
+      // ----------------------------------------------------
+      // Main View Navigation (화면 1, 2, 3 전환)
+      // ----------------------------------------------------
+      showFirstLoginView() {
+        const firstLoginView = document.getElementById('firstLoginView');
+        const unitSelectionView = document.getElementById('unitSelectionView');
+        const playerView = document.getElementById('slidePlayerView');
+
+        if (firstLoginView) firstLoginView.classList.remove('hidden');
+        if (unitSelectionView) unitSelectionView.classList.add('hidden');
+        if (playerView) playerView.classList.add('hidden');
+
+        // 입력 폼에 포커스
+        const numInput = document.getElementById('mainNumberInput');
+        if (numInput) numInput.focus();
+      }
+
+      showUnitSelection() {
+        const firstLoginView = document.getElementById('firstLoginView');
+        const unitSelectionView = document.getElementById('unitSelectionView');
+        const playerView = document.getElementById('slidePlayerView');
+
+        if (firstLoginView) firstLoginView.classList.add('hidden');
+        if (unitSelectionView) unitSelectionView.classList.remove('hidden');
+        if (playerView) playerView.classList.add('hidden');
+
+        this.renderStudentStatusUI();
+      }
+
+      showHome() {
+        // 상단 '메인 홈' 버튼 클릭 시: 로그인 상태면 2번째 화면(단원 선택), 미로그인이면 1번째 화면
+        if (this.student) {
+          this.showUnitSelection();
+        } else {
+          this.showFirstLoginView();
+        }
+      }
+
+      selectUnit(unitNumber) {
+        this.currentUnitKey = `unit${unitNumber}`;
+        this.currentSlideIndex = 0;
+        
+        const firstLoginView = document.getElementById('firstLoginView');
+        const unitSelectionView = document.getElementById('unitSelectionView');
+        const playerView = document.getElementById('slidePlayerView');
+
+        if (firstLoginView) firstLoginView.classList.add('hidden');
+        if (unitSelectionView) unitSelectionView.classList.add('hidden');
+        if (playerView) playerView.classList.remove('hidden');
+
+        this.renderCurrentSlide();
+      }
+
+      // ----------------------------------------------------
+      // First Screen: Student Login & Attendance Action
+      // ----------------------------------------------------
+      submitFirstScreenLogin() {
+        const classSelect = document.getElementById('mainClassSelect');
+        const numInput = document.getElementById('mainNumberInput');
+        const nameInput = document.getElementById('mainNameInput');
+
+        if (!classSelect || !numInput || !nameInput) return;
+
+        const classNum = parseInt(classSelect.value, 10);
+        const studentNum = parseInt(numInput.value, 10);
+        const name = nameInput.value.trim();
+
+        if (isNaN(studentNum) || studentNum < 1 || studentNum > 40) {
+          this.showToast('번호를 1~40 사이로 올바르게 입력해 주세요.', 'warning');
+          return;
+        }
+
+        if (!name) {
+          this.showToast('이름을 입력해 주세요.', 'warning');
+          return;
+        }
+
+        // Initialize Student Profile
+        this.student = {
+          grade: 2,
+          classNum,
+          studentNum,
+          name,
+          score: 0,
+          solvedCount: 0,
+          loginTime: new Date().toLocaleTimeString()
+        };
+
+        this.saveLocalStudent();
+        this.syncStudentScoreToCloud();
+        
+        // 2번째 화면(단원 선택 화면)으로 즉시 전환
+        this.showUnitSelection();
+        this.showToast(`환영합니다! 2학년 ${classNum}반 ${studentNum}번 ${name} 학생 출석 완료!`, 'success');
+
+        // Confetti celebration
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+        }
+      }
+
+      logoutStudent() {
+        this.student = null;
+        this.saveLocalStudent();
+        this.showFirstLoginView();
+        this.renderStudentStatusUI();
+        this.showToast('로그아웃 되었습니다.', 'info');
+      }
+
+      renderStudentStatusUI() {
+        const navBadge = document.getElementById('navStudentBadge');
+        const unitStudentLabel = document.getElementById('unitStudentLabel');
+        const unitStudentScore = document.getElementById('unitStudentScore');
+        const unitStudentSolves = document.getElementById('unitStudentSolves');
+
+        if (this.student) {
+          // Logged In
+          if (navBadge) {
+            navBadge.innerHTML = `
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-100 text-indigo-900 border border-indigo-200 text-xs sm:text-sm font-black shadow-xs">
+                <i class="fa-solid fa-user-graduate text-indigo-600"></i>
+                <span>2-${this.student.classNum}반 ${this.student.studentNum}번 ${this.student.name}</span>
+                <span class="ml-1 text-amber-600 bg-white px-1.5 py-0.5 rounded-md text-[11px] font-black">${this.student.score}P</span>
+              </div>
+            `;
+          }
+          if (unitStudentLabel) unitStudentLabel.textContent = `2학년 ${this.student.classNum}반 ${this.student.studentNum}번 ${this.student.name}`;
+          if (unitStudentScore) unitStudentScore.textContent = `${this.student.score} P`;
+          if (unitStudentSolves) unitStudentSolves.textContent = `${this.student.solvedCount}개`;
+        } else {
+          // Logged Out
+          if (navBadge) {
+            navBadge.innerHTML = `
+              <button onclick="app.showFirstLoginView()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs sm:text-sm font-extrabold transition-all shadow-xs">
+                <i class="fa-solid fa-user-pen text-amber-600"></i>
+                <span>학생 로그인</span>
+              </button>
+            `;
+          }
+        }
+      }
+
+      async syncStudentScoreToCloud() {
+        if (!this.student) return;
+
+        // Upsert locally
+        const existingIdx = this.rankingList.findIndex(
+          s => s.classNum === this.student.classNum && s.studentNum === this.student.studentNum
+        );
+        if (existingIdx >= 0) {
+          this.rankingList[existingIdx] = { ...this.student };
+        } else {
+          this.rankingList.push({ ...this.student });
+        }
+        this.rankingList.sort((a, b) => b.score - a.score);
+        this.renderRankingListUI();
+
+        // Cloud sync if authenticated
+        if (db && currentUser) {
+          try {
+            const studentDocId = `student_2_${this.student.classNum}_${this.student.studentNum}`;
+            const studentRef = doc(db, 'artifacts', appId, 'public', 'data', 'grade2_rankings', studentDocId);
+            await setDoc(studentRef, this.student, { merge: true });
+          } catch (err) {
+            console.warn("Cloud ranking sync failed:", err);
+          }
+        }
+      }
+
+      openRankingModal() {
+        this.renderRankingListUI();
+        const modal = document.getElementById('rankingModal');
+        if (modal) modal.classList.remove('hidden');
+      }
+
+      closeRankingModal() {
+        const modal = document.getElementById('rankingModal');
+        if (modal) modal.classList.add('hidden');
+      }
+
+      renderRankingListUI() {
+        const container = document.getElementById('rankingListContainer');
+        const myInfo = document.getElementById('rankMyInfo');
+        const myScore = document.getElementById('rankMyScore');
+
+        // Update My Rank Status
+        if (this.student) {
+          const myRankIndex = this.rankingList.findIndex(
+            s => s.classNum === this.student.classNum && s.studentNum === this.student.studentNum
+          );
+          const myRankText = myRankIndex >= 0 ? `${myRankIndex + 1}위` : '순위 진입 전';
+          if (myInfo) myInfo.textContent = `내 정보: 2학년 ${this.student.classNum}반 ${this.student.studentNum}번 ${this.student.name} (${myRankText})`;
+          if (myScore) myScore.textContent = `${this.student.score} P`;
+        } else {
+          if (myInfo) myInfo.textContent = '로그인하고 2학년 랭킹에 도전해 보세요!';
+          if (myScore) myScore.textContent = '-';
+        }
+
+        if (!container) return;
+
+        if (this.rankingList.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-8 text-slate-400 font-bold text-sm">
+              아직 등록된 랭킹 데이터가 없습니다.<br>첫 번째로 문제를 풀고 1등에 도전해 보세요!
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = this.rankingList.map((st, idx) => {
+          let rankBadge = `<span class="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 font-black flex items-center justify-center text-xs">${idx + 1}</span>`;
+          let cardBg = "bg-white border-slate-100";
+
+          if (idx === 0) {
+            rankBadge = `<span class="w-8 h-8 rounded-xl bg-amber-400 text-white font-black flex items-center justify-center text-sm shadow-md">👑</span>`;
+            cardBg = "bg-amber-50/70 border-amber-300 ring-1 ring-amber-300";
+          } else if (idx === 1) {
+            rankBadge = `<span class="w-7 h-7 rounded-xl bg-slate-300 text-slate-800 font-black flex items-center justify-center text-xs">🥈</span>`;
+            cardBg = "bg-slate-50 border-slate-300";
+          } else if (idx === 2) {
+            rankBadge = `<span class="w-7 h-7 rounded-xl bg-amber-600 text-white font-black flex items-center justify-center text-xs">🥉</span>`;
+            cardBg = "bg-amber-50/40 border-amber-200";
+          }
+
+          const isMe = this.student && this.student.classNum === st.classNum && this.student.studentNum === st.studentNum;
+          if (isMe) {
+            cardBg += " ring-2 ring-indigo-500 bg-indigo-50/80";
+          }
+
+          return `
+            <div class="p-3 rounded-2xl border-2 ${cardBg} flex items-center justify-between gap-3 shadow-xs">
+              <div class="flex items-center gap-3">
+                ${rankBadge}
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs sm:text-sm font-black text-slate-900">${st.name}</span>
+                    <span class="text-[11px] font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
+                      2-${st.classNum}반 ${st.studentNum}번
+                    </span>
+                    ${isMe ? '<span class="text-[10px] bg-indigo-600 text-white px-1.5 py-0.5 rounded-full font-black">나</span>' : ''}
+                  </div>
+                  <div class="text-[11px] text-slate-500 font-bold">
+                    해결한 문제: ${st.solvedCount || 0}개
+                  </div>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-sm sm:text-base font-black text-indigo-600">${st.score}</span>
+                <span class="text-xs font-extrabold text-slate-500">P</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // ----------------------------------------------------
+      // Teacher Management Center
+      // ----------------------------------------------------
+      openTeacherModal() {
+        const modal = document.getElementById('teacherModal');
+        const authSec = document.getElementById('teacherAuthSection');
+        const dashSec = document.getElementById('teacherDashboardSection');
+
+        if (!modal) return;
+        modal.classList.remove('hidden');
+
+        if (this.teacherAuthenticated) {
+          if (authSec) authSec.classList.add('hidden');
+          if (dashSec) dashSec.classList.remove('hidden');
+          this.renderTeacherDashboard();
+        } else {
+          if (authSec) authSec.classList.remove('hidden');
+          if (dashSec) dashSec.classList.add('hidden');
+        }
+      }
+
+      closeTeacherModal() {
+        const modal = document.getElementById('teacherModal');
+        if (modal) modal.classList.add('hidden');
+      }
+
+      verifyTeacherPassword() {
+        const pwdInput = document.getElementById('teacherPasswordInput');
+        if (pwdInput && pwdInput.value.trim() === '3531') {
+          this.teacherAuthenticated = true;
+          this.openTeacherModal();
+          this.showToast('교사 관리자 모드 인증 완료!', 'success');
+        } else {
+          this.showToast('비밀번호가 일치하지 않습니다.', 'warning');
+        }
+      }
+
+      renderTeacherDashboard() {
+        const countSpan = document.getElementById('teacherStudentCount');
+        const tableBody = document.getElementById('teacherStudentTableBody');
+
+        if (countSpan) countSpan.textContent = this.rankingList.length;
+        if (!tableBody) return;
+
+        if (this.rankingList.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="5" class="p-4 text-center text-slate-400">등록된 학생 데이터가 없습니다.</td>
+            </tr>
+          `;
+          return;
+        }
+
+        tableBody.innerHTML = this.rankingList.map((st, idx) => `
+          <tr class="hover:bg-indigo-50/30">
+            <td class="p-2.5 text-center font-black">${idx + 1}</td>
+            <td class="p-2.5">2-${st.classNum}반 ${st.studentNum}번</td>
+            <td class="p-2.5 font-black text-slate-900">${st.name}</td>
+            <td class="p-2.5 text-center font-black text-indigo-600">${st.score}P</td>
+            <td class="p-2.5 text-center">
+              <button onclick="app.adjustStudentScore(${st.classNum}, ${st.studentNum}, 5)" class="px-2 py-1 rounded bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-xs font-black mr-1">+5P</button>
+              <button onclick="app.adjustStudentScore(${st.classNum}, ${st.studentNum}, -5)" class="px-2 py-1 rounded bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-black mr-1">-5P</button>
+              <button onclick="app.deleteStudent(${st.classNum}, ${st.studentNum})" class="px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold">삭제</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      adjustStudentScore(classNum, studentNum, delta) {
+        const student = this.rankingList.find(s => s.classNum === classNum && s.studentNum === studentNum);
+        if (student) {
+          student.score = Math.max(0, student.score + delta);
+          this.rankingList.sort((a, b) => b.score - a.score);
+          if (this.student && this.student.classNum === classNum && this.student.studentNum === studentNum) {
+            this.student.score = student.score;
+            this.saveLocalStudent();
+            this.renderStudentStatusUI();
+          }
+          this.renderTeacherDashboard();
+          this.renderRankingListUI();
+          this.showToast(`${student.name} 학생 점수 변경 완료 (${delta > 0 ? '+' : ''}${delta}P)`, 'info');
+        }
+      }
+
+      deleteStudent(classNum, studentNum) {
+        this.rankingList = this.rankingList.filter(s => !(s.classNum === classNum && s.studentNum === studentNum));
+        if (this.student && this.student.classNum === classNum && this.student.studentNum === studentNum) {
+          this.student = null;
+          this.saveLocalStudent();
+          this.renderStudentStatusUI();
+        }
+        this.renderTeacherDashboard();
+        this.renderRankingListUI();
+        this.showToast('학생 정보가 삭제되었습니다.', 'info');
+      }
+
+      seedSampleStudents() {
+        const samples = [
+          { grade: 2, classNum: 1, studentNum: 3, name: '강서준', score: 30, solvedCount: 2 },
+          { grade: 2, classNum: 2, studentNum: 15, name: '윤아린', score: 45, solvedCount: 3 },
+          { grade: 2, classNum: 3, studentNum: 8, name: '송시우', score: 50, solvedCount: 4 },
+          { grade: 2, classNum: 5, studentNum: 22, name: '오하은', score: 20, solvedCount: 1 },
+          { grade: 2, classNum: 6, studentNum: 19, name: '임도현', score: 60, solvedCount: 5 }
+        ];
+
+        samples.forEach(sample => {
+          if (!this.rankingList.some(s => s.classNum === sample.classNum && s.studentNum === sample.studentNum)) {
+            this.rankingList.push(sample);
+          }
+        });
+
+        this.rankingList.sort((a, b) => b.score - a.score);
+        this.renderTeacherDashboard();
+        this.renderRankingListUI();
+        this.showToast('시연용 2학년 샘플 학생 5명이 등록되었습니다!', 'success');
+      }
+
+      resetAllScores() {
+        this.rankingList.forEach(s => { s.score = 0; s.solvedCount = 0; });
+        if (this.student) {
+          this.student.score = 0;
+          this.student.solvedCount = 0;
+          this.saveLocalStudent();
+          this.renderStudentStatusUI();
+        }
+        this.renderTeacherDashboard();
+        this.renderRankingListUI();
+        this.showToast('모든 학생의 퀴즈 점수가 0점으로 초기화되었습니다.', 'info');
+      }
+
+      unlockAllSlides() {
+        this.unlockedAll = true;
+        this.showToast('모든 슬라이드 및 퀴즈 제약이 해제되었습니다.', 'success');
+      }
+
+      exportStudentData() {
+        const textData = JSON.stringify(this.rankingList, null, 2);
+        // Rule: document.execCommand('copy') for iframe compatibility
+        const tempTextArea = document.createElement('textarea');
+        tempTextArea.value = textData;
+        document.body.appendChild(tempTextArea);
+        tempTextArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempTextArea);
+        this.showToast('학생 성적 JSON 데이터가 클립보드에 복사되었습니다!', 'success');
+      }
+
+      // ----------------------------------------------------
+      // Utilities (TTS, Toast, Toast UI)
+      // ----------------------------------------------------
+      speakCurrentContent() {
+        if ('speechSynthesis' in window) {
+          const slide = this.currentSlide;
+          if (!slide) return;
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(slide.title);
+          utterance.lang = 'ko-KR';
+          utterance.rate = 1.0;
+          window.speechSynthesis.speak(utterance);
+        } else {
+          this.showToast('이 브라우저는 음성 읽기(TTS)를 지원하지 않습니다.', 'warning');
+        }
+      }
+
+      showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        let bg = 'bg-slate-900 text-white';
+        let icon = 'fa-info-circle';
+
+        if (type === 'success') {
+          bg = 'bg-emerald-600 text-white';
+          icon = 'fa-check-circle';
+        } else if (type === 'warning') {
+          bg = 'bg-amber-600 text-white';
+          icon = 'fa-exclamation-triangle';
+        }
+
+        toast.className = `${bg} px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 text-xs sm:text-sm font-extrabold transition-all transform duration-300 pointer-events-auto`;
+        toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'translate-y-2');
+          setTimeout(() => toast.remove(), 300);
+        }, 2800);
+      }
+    }
+
+    // Immediate instantiation so button onclicks never hit ReferenceError
+    const app = new EduApp();
+    window.app = app;
+
+    // Async Firebase initialization
+    (async function initFirebaseAndApp() {
+      try {
+        if (typeof __firebase_config !== 'undefined') {
+          const firebaseConfig = JSON.parse(__firebase_config);
+          const fbApp = initializeApp(firebaseConfig);
+          db = getFirestore(fbApp);
+          auth = getAuth(fbApp);
+
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(auth);
+          }
+          currentUser = auth.currentUser;
+        }
+      } catch (e) {
+        console.warn("Firebase running in in-memory mode:", e);
+      }
+
+      // Initialize UI
+      if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', () => app.init());
+      } else {
+        app.init();
+      }
+    })();
+  </script>
+</body>
+</html>
